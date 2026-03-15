@@ -142,6 +142,11 @@ class AiWriterRecord extends Equatable {
   })  : role = AiRole.ai,
         format = null;
 
+  const AiWriterRecord.system({
+    required this.content,
+  })  : role = AiRole.system,
+        format = null;
+
   final AiRole role;
   final String content;
   final PredefinedFormat? format;

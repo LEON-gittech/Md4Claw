@@ -1,0 +1,24 @@
+[package]
+name = "appflowy-mcp-server"
+version = "0.1.0"
+edition = "2024"
+description = "MCP server for AppFlowy - enables Claude Code to read/write AppFlowy documents"
+
+[[bin]]
+name = "appflowy-mcp-server"
+path = "src/main.rs"
+
+[dependencies]
+collab = { workspace = true }
+collab-document = { workspace = true }
+collab-entity = { workspace = true }
+collab-plugins = { workspace = true }
+collab-folder = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+tokio = { workspace = true, features = ["rt-multi-thread", "macros", "io-util", "io-std", "sync"] }
+tracing = { workspace = true }
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+uuid = { workspace = true }
+anyhow = { workspace = true }
+futures = { workspace = true }

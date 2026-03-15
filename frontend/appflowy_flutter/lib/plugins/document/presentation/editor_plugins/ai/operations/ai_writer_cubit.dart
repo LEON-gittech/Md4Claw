@@ -368,6 +368,19 @@ class AiWriterCubit extends Cubit<AiWriterState> {
     return "$viewName\n$documentText".trim();
   }
 
+  /// Get the full document content as markdown for providing context
+  /// to AI completions (e.g., when user selects text for improve/fix operations).
+  Future<String> _getFullDocumentContent() async {
+    final lastNodeIndex = editorState.document.root.children.length - 1;
+    if (lastNodeIndex < 0) return '';
+    final lastNode = editorState.document.root.children[lastNodeIndex];
+    final endPosition = Position(
+      path: lastNode.path,
+      offset: lastNode.delta?.length ?? 0,
+    );
+    return _getDocumentContentFromTopToPosition(endPosition);
+  }
+
   void _startAskingQuestion(
     String prompt,
     PredefinedFormat? format,
@@ -377,6 +390,18 @@ class AiWriterCubit extends Cubit<AiWriterState> {
       return;
     }
     final command = AiWriterCommand.userQuestion;
+
+    // Add full document context so the AI understands the document
+    final docContext = await _getFullDocumentContent();
+    if (docContext.isNotEmpty &&
+        !records.any((r) => r.role == AiRole.system)) {
+      records.insert(
+        0,
+        AiWriterRecord.system(
+          content: 'Full document context:\n$docContext',
+        ),
+      );
+    }
 
     final stream = await _aiService.streamCompletion(
       objectId: documentId,
@@ -558,8 +583,23 @@ class AiWriterCubit extends Cubit<AiWriterState> {
     if (selection == null) {
       return;
     }
-    if (prompt.isEmpty) {
+    if (prompt.isEmpty && records.isNotEmpty) {
       prompt = records.removeAt(0).content;
+    }
+    if (prompt.isEmpty) {
+      return;
+    }
+
+    // Add full document context so the AI understands the surrounding text
+    final docContext = await _getFullDocumentContent();
+    if (docContext.isNotEmpty &&
+        !records.any((r) => r.role == AiRole.system)) {
+      records.insert(
+        0,
+        AiWriterRecord.system(
+          content: 'Full document context:\n$docContext',
+        ),
+      );
     }
 
     final stream = await _aiService.streamCompletion(
@@ -663,8 +703,23 @@ class AiWriterCubit extends Cubit<AiWriterState> {
     if (selection == null) {
       return;
     }
-    if (prompt.isEmpty) {
+    if (prompt.isEmpty && records.isNotEmpty) {
       prompt = records.removeAt(0).content;
+    }
+    if (prompt.isEmpty) {
+      return;
+    }
+
+    // Add full document context so the AI understands the surrounding text
+    final docContext = await _getFullDocumentContent();
+    if (docContext.isNotEmpty &&
+        !records.any((r) => r.role == AiRole.system)) {
+      records.insert(
+        0,
+        AiWriterRecord.system(
+          content: 'Full document context:\n$docContext',
+        ),
+      );
     }
 
     final stream = await _aiService.streamCompletion(

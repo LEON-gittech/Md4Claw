@@ -196,6 +196,25 @@ dependencies = [
 ]
 
 [[package]]
+name = "appflowy-mcp-server"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "collab",
+ "collab-document",
+ "collab-entity",
+ "collab-folder",
+ "collab-plugins",
+ "futures",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tracing",
+ "tracing-subscriber",
+ "uuid",
+]
+
+[[package]]
 name = "arbitrary"
 version = "1.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"

@@ -3,6 +3,7 @@ pub mod event_map;
 
 pub mod ai_manager;
 mod chat;
+pub mod claude_code;
 mod completion;
 pub mod entities;
 pub mod local_ai;

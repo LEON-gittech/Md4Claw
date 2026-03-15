@@ -1,3 +1,4 @@
+use crate::claude_code;
 use crate::local_ai::controller::LocalAIController;
 use flowy_ai_pub::persistence::select_message_content;
 use std::collections::HashMap;
@@ -215,6 +216,19 @@ impl ChatCloudService for ChatServiceMiddleware {
     ai_model: AIModel,
   ) -> Result<StreamComplete, FlowyError> {
     info!("stream_complete use custom model: {:?}", ai_model);
+
+    // Check for Claude Code route first
+    if is_claude_code_model(&ai_model) {
+      if claude_code::is_claude_code_available().await {
+        return claude_code::stream_complete_with_claude_code(params).await;
+      } else {
+        return Err(
+          FlowyError::internal()
+            .with_context("Claude Code CLI is not installed. Install it from https://docs.anthropic.com/en/docs/claude-code"),
+        );
+      }
+    }
+
     if ai_model.is_local {
       if self.local_ai.is_ready().await {
         self.local_ai.complete_text(&ai_model.name, params).await
@@ -294,4 +308,10 @@ impl ChatCloudService for ChatServiceMiddleware {
       .set_workspace_default_model(workspace_id, model)
       .await
   }
+}
+
+/// Check if the model name indicates Claude Code should be used
+fn is_claude_code_model(model: &AIModel) -> bool {
+  let name = model.name.to_lowercase();
+  name == "claude-code" || name.starts_with("claude-code:")
 }

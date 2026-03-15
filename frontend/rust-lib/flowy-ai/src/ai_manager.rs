@@ -1,4 +1,5 @@
 use crate::chat::Chat;
+use crate::claude_code;
 use crate::entities::{
   AIModelPB, ChatInfoPB, ChatMessageListPB, ChatMessagePB, ChatSettingsPB,
   CustomPromptDatabaseConfigurationPB, FilePB, ModelSelectionPB, PredefinedFormatPB,
@@ -501,6 +502,11 @@ impl AIManager {
       .get_local_models(&workspace_id)
       .await;
 
+    // Inject Claude Code as an available local model if the CLI is installed
+    if claude_code::is_claude_code_available().await {
+      models.push(AIModel::new("claude-code", "Claude Code CLI (local)", true));
+    }
+
     let selected_model = match source {
       None => {
         let setting = self.local_ai.get_local_ai_setting();
@@ -562,8 +568,19 @@ impl AIManager {
       .await;
     drop(model_control);
 
+    let mut model_pbs: Vec<AIModelPB> = all_models.into_iter().map(AIModelPB::from).collect();
+
+    // Inject Claude Code as an available model if the CLI is installed
+    if claude_code::is_claude_code_available().await {
+      model_pbs.push(AIModelPB {
+        name: "claude-code".to_string(),
+        is_local: true,
+        desc: "Claude Code CLI (local)".to_string(),
+      });
+    }
+
     Ok(ModelSelectionPB {
-      models: all_models.into_iter().map(AIModelPB::from).collect(),
+      models: model_pbs,
       selected_model: AIModelPB::from(active_model),
     })
   }
